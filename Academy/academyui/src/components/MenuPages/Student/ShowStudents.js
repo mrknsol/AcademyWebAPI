@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudents, updateStudent, setEditStudentId, setEditedStudent, clearEdit } from '../../../redux/studentSlice';
+import { fetchStudents, updateStudent, deleteStudent, setEditStudentId, setEditedStudent, clearEdit } from '../../../redux/studentSlice';
 
 const ShowStudents = () => {
   const dispatch = useDispatch();
@@ -17,6 +17,12 @@ const ShowStudents = () => {
 
   const handleSaveClick = () => {
     dispatch(updateStudent(editedStudent));
+  };
+
+  const handleDeleteClick = (student) => {
+    if (window.confirm('Are you sure you want to delete this student?')) {
+      dispatch(deleteStudent(student));
+    }
   };
 
   const handleChange = (e) => {
@@ -94,14 +100,24 @@ const ShowStudents = () => {
               </div>
               <div className="flex items-center gap-2">
                 {editStudentId !== student.id && (
-                  <button
-                    className="text-purple-500 hover:text-purple-700 transition-colors"
-                    onClick={() => handleEditClick(student)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 13l9 9 9-9M15 4h6a2 2 0 012 2v6M5 4h6M5 4l3 3M5 4v6m14-6v6M15 4l3 3" />
-                    </svg>
-                  </button>
+                  <>
+                    <button
+                      className="text-purple-500 hover:text-purple-700 transition-colors"
+                      onClick={() => handleEditClick(student)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 13l9 9 9-9M15 4h6a2 2 0 012 2v6M5 4h6M5 4l3 3M5 4v6m14-6v6M15 4l3 3" />
+                      </svg>
+                    </button>
+                    <button
+                      className="text-red-500 hover:text-red-700 transition-colors"
+                      onClick={() => handleDeleteClick(student)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </>
                 )}
               </div>
             </div>

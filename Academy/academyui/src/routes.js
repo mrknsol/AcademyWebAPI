@@ -1,5 +1,7 @@
 import Layout from './components/Layout';
 import Login from './components/Login';
+import CreateGroup from './components/MenuPages/Group/CreateGroup';
+import ShowGroups from './components/MenuPages/Group/ShowGroups';
 import Home from './components/MenuPages/Home';
 import AddStudent  from './components/MenuPages/Student/AddStudent';
 import  ShowStudents from './components/MenuPages/Student/ShowStudents';
@@ -15,6 +17,17 @@ const studentElements = [
   {
     path: 'showStudents',
     element: <ShowStudents />
+  }
+]
+
+const groupElements = [
+  {
+    path: 'createGroup',
+    element: <CreateGroup />
+  },
+  {
+    path: 'showGroups',
+    element: <ShowGroups />
   }
 ]
 
@@ -41,6 +54,10 @@ const layoutChildren = [
   {
     path: 'teacher',
     children: teacherElements
+  },
+  {
+    path: 'group',
+    children: groupElements
   }
 ]
 

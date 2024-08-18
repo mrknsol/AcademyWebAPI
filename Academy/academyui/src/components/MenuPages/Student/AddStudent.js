@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addStudent, clearEdit } from '../../../redux/studentSlice';
+import { addStudent } from '../../../redux/studentSlice';
 
 const AddStudent = () => {
   const dispatch = useDispatch();

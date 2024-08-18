@@ -4,7 +4,7 @@ namespace webapi.Services.Interfaces;
 
 public interface ITeacherService {
     public Task<List<Teacher>> GetAllTeachersAsync();
-    public Task<Teacher> AddTeacherAsync(Teacher teacher);
-    public Task DeleteTeacherAsync(Guid id);
-    public Task UpdateTeacherAsync(Guid id, Teacher teacher);
+    public Task<Teacher> AddTeacherAsync(SignUpUser teacher);
+    public Task DeleteTeacherAsync(string email);
+    public Task UpdateTeacherAsync(string email, EditUser teacher);
 }

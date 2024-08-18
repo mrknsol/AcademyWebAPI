@@ -42,23 +42,22 @@ namespace webapi.Controllers
         }
 
         [Authorize(Roles = "appadmin")]
-[HttpPut("Edit")]
-public async Task<IActionResult> EditStudent([FromQuery] string email, [FromBody] EditStudent student)
-{
-    if (student == null)
-    {
-        return BadRequest("Student data is required");
-    }
-
-    try
-    {
-        await _studentService.UpdateStudentAsync(email, student);
-        return Ok(email);
-    }
-    catch (ArgumentException ex)
-    {
-        return BadRequest(ex.Message);
-    }
-}
+        [HttpPut("Edit")]
+        public async Task<IActionResult> EditStudent([FromQuery] string email, [FromBody] EditUser student)
+        {
+            if (student == null)
+            {
+                return BadRequest("Student data is required");
+            }
+            try
+            {
+                await _studentService.UpdateStudentAsync(email, student);
+                return Ok(email);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

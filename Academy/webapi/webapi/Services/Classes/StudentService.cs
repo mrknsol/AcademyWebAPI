@@ -61,7 +61,7 @@ public class StudentService : IStudentService
         await _context.SaveChangesAsync();
     }
 
-    public async Task UpdateStudentAsync(string email, EditStudent student)
+     public async Task UpdateStudentAsync(string email, EditUser student)
     {
         var existingStudent = await _context.Students.Include(s => s.User)
                                                     .FirstOrDefaultAsync(e => e.User.Email == email);
@@ -69,10 +69,11 @@ public class StudentService : IStudentService
 
         existingStudent.User.Name = student.Name;
         existingStudent.User.Surname = student.Surname;
-        existingStudent.User.Email = student.Email;
+        existingStudent.User.Age = student.Age;
 
         await _context.SaveChangesAsync();
     }
+
 
     public async Task<List<Student>> GetAllStudentsAsync()
     {

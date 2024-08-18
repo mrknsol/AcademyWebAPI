@@ -1,23 +1,24 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using webapi.Models;
+using webapi.Models.DTOes;
 using webapi.Services.Interfaces;
 
 namespace webapi.Controllers;
 
 [ApiController]
-[Route("/api/[controller]")]
-public class GroupController : ControllerBase {
+[Route("/api/v1/[controller]")]
+public class GroupsController : ControllerBase {
     private readonly IGroupService _groupService;
 
 
-    public GroupController(IGroupService groupService)
+    public GroupsController(IGroupService groupService)
     {
         _groupService = groupService;
     }
 
     [HttpPost("Create")]
-    public async Task<IActionResult> CreateGroup([FromBody] Group group)
+    public async Task<IActionResult> CreateGroup([FromBody] CreateGroup group)
     {
         try
         {
@@ -45,10 +46,10 @@ public class GroupController : ControllerBase {
         return NoContent();
     }
 
-    [HttpPut("Update")]
-    public async Task<IActionResult> UpdateGroups(string email, Group group) {
-        await _groupService.UpdateGroupAsync(email, group);
-        return Ok(email);
+    [HttpPut("Edit")]
+    public async Task<IActionResult> UpdateGroups([FromQuery] string groupName, [FromBody] CreateGroup group) {
+        await _groupService.UpdateGroupAsync(groupName, group);
+        return Ok(group);
     }
 
     [HttpPut("ChangeTeacher")]

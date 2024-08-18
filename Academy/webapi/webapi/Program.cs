@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using webapi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +79,8 @@ builder.Services.AddScoped<RegisterUserValidator>();
 builder.Services.AddTransient<ITokenService, TokenService>();
 builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<IStudentService, StudentService>();
+builder.Services.AddTransient<IGroupService, GroupService>();
+builder.Services.AddTransient<ITeacherService, TeacherService>();
 builder.Services.AddSingleton<IBlackListService, BlackListService>();
 builder.Services.AddSingleton<JwtSessionMiddleware>();
 
