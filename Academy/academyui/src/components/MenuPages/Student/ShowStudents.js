@@ -100,7 +100,7 @@ const ShowStudents = () => {
               </div>
               <div className="flex items-center gap-2">
                 {editStudentId !== student.id && (
-                  <>
+                  <div>
                     <button
                       className="text-purple-500 hover:text-purple-700 transition-colors"
                       onClick={() => handleEditClick(student)}
@@ -117,7 +117,7 @@ const ShowStudents = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
