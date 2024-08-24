@@ -44,8 +44,8 @@ public class TeachersController : ControllerBase {
         }
         try
         {
-            await _teacherService.UpdateTeacherAsync(email, teacher);
-            return Ok();
+            var editedTeacher = await _teacherService.UpdateTeacherAsync(email, teacher);
+            return Ok(editedTeacher);
         }
         catch (ArgumentException ex)
         {

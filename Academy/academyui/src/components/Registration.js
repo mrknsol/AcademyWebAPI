@@ -20,6 +20,11 @@ const RegisterForm = () => {
 
     const handleRegister = async (e) => {
       e.preventDefault();
+      if (user.Password !== user.ConfirmPassword) {
+        alert("Passwords do not match");
+        return;
+      }
+
       try {
         console.log(user)
         await dispatch(registerUser(user)).unwrap();

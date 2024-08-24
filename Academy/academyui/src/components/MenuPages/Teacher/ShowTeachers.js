@@ -1,11 +1,18 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchTeachers, updateTeacher, setEditTeacherId, setEditedTeacher, deleteTeacher, clearEdit } from '../../../redux/teacherSlice';
+import { fetchTeachers, updateTeacher, setEditTeacherId, deleteTeacher, clearEdit } from '../../../redux/teacherSlice';
 
 const ShowTeachers = () => {
   const dispatch = useDispatch();
-  const { teachers, editTeacherId, editedTeacher, error, status } = useSelector((state) => state.teachers);
+  const { teachers, editTeacherId} = useSelector((state) => state.teachers);
+  const [formValues, setFormValues] = useState({
+    name: '',
+    surname: '',
+    email: '',
+  });
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     dispatch(fetchTeachers());
@@ -13,28 +20,44 @@ const ShowTeachers = () => {
 
   const handleEditClick = (teacher) => {
     dispatch(setEditTeacherId(teacher.id));
-    dispatch(setEditedTeacher(teacher));
+    setFormValues({
+      name: teacher.user.name || '',
+      surname: teacher.user.surname || '',
+      email: teacher.user.email || '',
+    });
+  };
+  
+  const handleCancelEdit = () => {
+    dispatch(clearEdit());
   };
 
-  const handleSaveClick = () => {
-    if (editedTeacher.user.name && editedTeacher.user.surname && editedTeacher.user.email) {
-      dispatch(updateTeacher(editedTeacher))
-    } else {
-      console.error("All Fields have to fulfilled!!");
-    }
+  const handleSaveEdit = () => {
+    setStatus('loading');
+    dispatch(updateTeacher({ ...formValues }))
+      .unwrap()
+      .then(() => {
+        setStatus('succeeded');
+        dispatch(clearEdit());
+      })
+      .catch((err) => {
+        setStatus('failed');
+        setError(err);
+      });
   };
 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    dispatch(setEditedTeacher({ ...editedTeacher, user: { ...editedTeacher.user, [name]: value } }));
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }));
   };
 
-  const handleDeleteClick = (teacher) => {
-    if (window.confirm('Are you sure you want to delete this teacher?')) {
-      dispatch(deleteTeacher(teacher));
-    }
+  const handleDelete = (email) => {
+    dispatch(deleteTeacher(email));
   };
+
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -54,42 +77,35 @@ const ShowTeachers = () => {
                     <input
                       type="text"
                       name="name"
-                      value={editedTeacher.user.name}
+                      value={formValues.name}
                       onChange={handleChange}
                       className="border border-gray-300 rounded-md px-2 py-1"
                     />
                     <input
                       type="text"
                       name="surname"
-                      value={editedTeacher.user.surname}
-                      onChange={handleChange}
-                      className="border border-gray-300 rounded-md px-2 py-1"
-                    />
-                    <input
-                      type="number"
-                      name="age"
-                      value={editedTeacher.user.age}
+                      value={formValues.surname}
                       onChange={handleChange}
                       className="border border-gray-300 rounded-md px-2 py-1"
                     />
                     <input
                       type="email"
                       name="email"
-                      value={editedTeacher.user.email}
+                      value={formValues.email}
                       onChange={handleChange}
-                      className="border border-gray-300 rounded-md px-2 py-1"
-                      disabled
+                      className="border border-gray-300 rounded-md px-2 py-1 bg-gray-200 text-gray-500 cursor-not-allowed"
+                      readOnly
                     />
                     <button
                       className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
-                      onClick={handleSaveClick}
+                      onClick={handleSaveEdit}
                       disabled={status === 'loading'}
                     >
                       Save
                     </button>
                     <button
                       className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
-                      onClick={() => dispatch(clearEdit())}
+                      onClick={handleCancelEdit}
                     >
                       Cancel
                     </button>
@@ -118,7 +134,7 @@ const ShowTeachers = () => {
               </div>
               <button
                     className="text-red-500 hover:text-red-700 transition-colors"
-                    onClick={() => handleDeleteClick(teacher)}
+                    onClick={() => handleDelete(teacher.user.email)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 13H5l7-7 7 7zM5 21h14M5 10h14" />

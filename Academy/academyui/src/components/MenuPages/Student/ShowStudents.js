@@ -1,33 +1,82 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudents, updateStudent, deleteStudent, setEditStudentId, setEditedStudent, clearEdit } from '../../../redux/studentSlice';
+import { fetchStudents, deleteStudent, setEditStudentId, clearEdit, updateStudent } from '../../../redux/studentSlice';
 
 const ShowStudents = () => {
   const dispatch = useDispatch();
-  const { students, editStudentId, editedStudent, error, status } = useSelector((state) => state.students);
+  const { students, editStudentId } = useSelector((state) => state.students);
+  const [formValues, setFormValues] = useState({
+    name: '',
+    surname: '',
+    email: '',
+  });
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchStudents());
+    setStatus('loading');
+    dispatch(fetchStudents())
+      .unwrap()
+      .then(() => {
+        setStatus('succeeded');
+      })
+      .catch((err) => {
+        setStatus('failed');
+        setError(err);
+      });
   }, [dispatch]);
 
-  const handleEditClick = (student) => {
-    dispatch(setEditStudentId(student.id));
-    dispatch(setEditedStudent(student));
+  const handleDelete = (email) => {
+    setStatus('loading');
+    dispatch(deleteStudent(email))
+      .unwrap()
+      .then(() => {
+        setStatus('succeeded');
+      })
+      .catch((err) => {
+        setStatus('failed');
+        setError(err);
+      });
   };
 
-  const handleSaveClick = () => {
-    dispatch(updateStudent(editedStudent));
-  };
-
-  const handleDeleteClick = (student) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      dispatch(deleteStudent(student));
+  const handleEdit = (student) => {
+    if (student && student.user) {
+      dispatch(setEditStudentId(student.id));
+      setFormValues({
+        name: student.user.name || '',
+        surname: student.user.surname || '',
+        email: student.user.email || '',
+      });
+    } else {
+      console.error("Student data is undefined", student);
     }
+    console.log(student.user.name, student.user.surname);
+  };
+
+  const handleCancelEdit = () => {
+    dispatch(clearEdit());
+  };
+
+  const handleSaveEdit = () => {
+    setStatus('loading');
+    dispatch(updateStudent({ ...formValues }))
+      .unwrap()
+      .then(() => {
+        setStatus('succeeded');
+        dispatch(clearEdit());
+      })
+      .catch((err) => {
+        setStatus('failed');
+        setError(err);
+      });
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    dispatch(setEditedStudent({ ...editedStudent, user: { ...editedStudent.user, [name]: value } }));
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }));
   };
 
   return (
@@ -35,93 +84,84 @@ const ShowStudents = () => {
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
         <h2 className="text-2xl font-semibold text-gray-900 p-4 border-b">Student List</h2>
         <div className="p-4">
-          {status === 'loading' && <p className="text-gray-700">Loading students...</p>}
+          {status === 'loading' && <p>Loading students...</p>}
           {status === 'failed' && <p className="text-red-500">{error}</p>}
-          {students.length === 0 && status !== 'loading' && (
-            <p className="text-gray-700">No students found.</p>
+          {students.length > 0 ? (
+            <ul>
+              {students.map((student) => (
+                <li key={student.user.email} className="flex justify-between items-center p-2 border-b">
+                  <div className="flex-1">
+                    {editStudentId === student.id ? (
+                      <div>
+                        <input
+                          type="text"
+                          name="name"
+                          value={formValues.name}
+                          onChange={handleChange}
+                          className="border border-gray-300 rounded-md px-2 py-1 mr-2"
+                        />
+                        <input
+                          type="text"
+                          name="surname"
+                          value={formValues.surname}
+                          onChange={handleChange}
+                          className="border border-gray-300 rounded-md px-2 py-1 mr-2"
+                        />
+                        <input
+                          type="email"
+                          name="email"
+                          value={formValues.email}
+                          onChange={handleChange}
+                          readOnly
+                          className="border border-gray-300 rounded-md px-2 py-1 bg-gray-200 text-gray-500 cursor-not-allowed"
+                        />
+                      </div>
+                    ) : (
+                      <div>
+                        <span className="font-semibold">{student.user.name} {student.user.surname}</span>
+                        <span className="text-sm text-gray-600 ml-2">{student.user.email}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {editStudentId === student.id ? (
+                      <div>
+                        <button
+                          className="bg-green-500 text-white py-1 px-3 rounded-md hover:bg-green-600"
+                          onClick={handleSaveEdit}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600"
+                          onClick={handleCancelEdit}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <button
+                          className="text-blue-500 hover:underline"
+                          onClick={() => handleEdit(student)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="text-red-500 hover:underline"
+                          onClick={() => handleDelete(student.user.email)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No students available.</p>
           )}
-          {students.map((student) => (
-            <div key={student.id} className="flex items-center justify-between p-4 border-b last:border-b-0">
-              <div className="flex-1">
-                {editStudentId === student.id ? (
-                  <div className="flex flex-col gap-4">
-                    <input
-                      type="text"
-                      name="name"
-                      value={editedStudent.user.name}
-                      onChange={handleChange}
-                      className="border border-gray-300 rounded-md px-2 py-1"
-                    />
-                    <input
-                      type="text"
-                      name="surname"
-                      value={editedStudent.user.surname}
-                      onChange={handleChange}
-                      className="border border-gray-300 rounded-md px-2 py-1"
-                    />
-                    <input
-                      type="number"
-                      name="age"
-                      value={editedStudent.user.age}
-                      onChange={handleChange}
-                      className="border border-gray-300 rounded-md px-2 py-1"
-                    />
-                    <input
-                      type="email"
-                      name="email"
-                      value={editedStudent.user.email}
-                      onChange={handleChange}
-                      className="border border-gray-300 rounded-md px-2 py-1"
-                      disabled
-                    />
-                    <button
-                      className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600"
-                      onClick={handleSaveClick}
-                      disabled={status === 'loading'}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600"
-                      onClick={() => dispatch(clearEdit())}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-lg font-medium text-gray-900">
-                      {student.user.name} {student.user.surname}
-                    </p>
-                    <p className="text-gray-700">Age: {student.user.age}</p>
-                    <p className="text-gray-700">Email: {student.user.email}</p>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {editStudentId !== student.id && (
-                  <div>
-                    <button
-                      className="text-purple-500 hover:text-purple-700 transition-colors"
-                      onClick={() => handleEditClick(student)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 13l9 9 9-9M15 4h6a2 2 0 012 2v6M5 4h6M5 4l3 3M5 4v6m14-6v6M15 4l3 3" />
-                      </svg>
-                    </button>
-                    <button
-                      className="text-red-500 hover:text-red-700 transition-colors"
-                      onClick={() => handleDeleteClick(student)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

@@ -1,23 +1,21 @@
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { apiRequest } from '../services/ApiService';
 
 export const fetchTeachers = createAsyncThunk(
   'teachers/fetchTeachers',
   async (_, thunkAPI) => {
     try {
-      const response = await fetch('http://localhost:5090/api/v1/Teachers/Get', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
+      const response = await apiRequest({
+        Url: 'http://localhost:5090/api/v1/Teachers/Get',
+        Method: 'GET',
+        Headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch teachers');
-      }
-
-      return response.json();
+      return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -26,20 +24,20 @@ export const addTeacher = createAsyncThunk(
   'teachers/addTeacher',
   async (teacherData, thunkAPI) => {
     try {
-      const response = await fetch('http://localhost:5090/api/v1/Teachers/Add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await apiRequest ({
+        Url: 'http://localhost:5090/api/v1/Teachers/Add',
+        Method: 'POST',
+        Headers: {
           'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
         },
-        body: JSON.stringify(teacherData),
+        Data: teacherData
       });
 
       if (!response.ok) {
         throw new Error('Failed to add teacher');
       }
 
-      return response.json();
+      return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
     }
@@ -47,46 +45,43 @@ export const addTeacher = createAsyncThunk(
 );
 
 export const updateTeacher = createAsyncThunk(
-  'teacher/updateTeacher',
+  'teachers/updateTeachers',
   async (teacher, thunkAPI) => {
-      try {
-          const response = await fetch(`http://localhost:5090/api/v1/Teachers/Edit?email=${teacher.user.email}`, {
-              method: 'PUT',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
-              },
-              body: JSON.stringify(teacher.user),
-          });
+    try {
+      const response = await apiRequest({
+        Url: `http://localhost:5090/api/v1/Teachers/Edit?email=${teacher.email}`,
+        Method: 'PUT',
+        Headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        Data: teacher,
+      });
 
-          if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(`Failed to update teacher: ${errorText}`);
-          }
-
-          return teacher;
-      } catch (error) {
-          return thunkAPI.rejectWithValue(error.message);
-      }
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    }
   }
 );
 
 export const deleteTeacher = createAsyncThunk(
     'teachers/deleteTeacher',
-    async (teacher, thunkAPI) => {
+    async (email, thunkAPI) => {
       try {
-        const response = await fetch(`http://localhost:5090/api/v1/Teachers/Delete?email=${teacher.user.email}`, {
-          method: 'DELETE',
-          headers: {
+        const response = await apiRequest ({
+          Url: `http://localhost:5090/api/v1/Teachers/Delete?email=${email}`,
+          Method: 'DELETE',
+          Headers: {
             'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
           },
+          Data: email
         });
   
         if (!response.ok) {
           throw new Error('Failed to delete teacher');
         }
   
-        return teacher.user;
+        return response;
       } catch (error) {
         return thunkAPI.rejectWithValue(error.message);
       }
@@ -99,8 +94,6 @@ const teacherSlice = createSlice({
     teachers: [],
     editTeacherId: null,
     editedTeacher: {},
-    error: null,
-    status: 'idle',
   },
   reducers: {
     setEditTeacherId: (state, action) => {
@@ -163,7 +156,7 @@ const teacherSlice = createSlice({
         state.error = null;
       })
       .addCase(deleteTeacher.fulfilled, (state, action) => {
-        state.students = state.students.filter((student) => student.user.email !== action.payload.user.email);
+        state.teachers = state.teachers.filter((teacher) => teacher.user.email !== action.payload.user.email);
         state.status = 'succeeded';
         state.error = null;
       })

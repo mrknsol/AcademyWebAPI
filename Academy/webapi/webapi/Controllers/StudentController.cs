@@ -51,8 +51,8 @@ namespace webapi.Controllers
             }
             try
             {
-                await _studentService.UpdateStudentAsync(email, student);
-                return Ok(email);
+                var editedStudent = await _studentService.UpdateStudentAsync(email, student);
+                return Ok(editedStudent);
             }
             catch (ArgumentException ex)
             {

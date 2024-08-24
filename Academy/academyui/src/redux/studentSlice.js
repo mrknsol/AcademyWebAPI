@@ -1,23 +1,21 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { apiRequest } from '../services/ApiService';
 
 export const fetchStudents = createAsyncThunk(
   'students/fetchStudents',
   async (_, thunkAPI) => {
     try {
-      const response = await fetch('http://localhost:5090/api/v1/Students/Get', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
+      const response = await apiRequest({
+        Url: 'http://localhost:5090/api/v1/Students/Get',
+        Method: 'GET',
+        Headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch students');
-      }
-
-      return await response.json();
+      return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -26,23 +24,19 @@ export const addStudent = createAsyncThunk(
   'students/addStudent',
   async (studentData, thunkAPI) => {
     try {
-      const response = await fetch('http://localhost:5090/api/v1/Students/Add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
+      console.log(studentData);
+      const response = await apiRequest({
+        Url: 'http://localhost:5090/api/v1/Students/Add',
+        Method: 'POST',
+        Headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
-        body: JSON.stringify(studentData),
+        Data: studentData,
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to add student: ${errorText}`);
-      }
-
-      return await response.json();
+      return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -50,46 +44,38 @@ export const addStudent = createAsyncThunk(
 export const updateStudent = createAsyncThunk(
   'students/updateStudent',
   async (student, thunkAPI) => {
-      try {
-          const response = await fetch(`http://localhost:5090/api/v1/Students/Edit?email=${student.user.email}`, {
-              method: 'PUT',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
-              },
-              body: JSON.stringify(student.user),
-          });
+    try {
+      const response = await apiRequest({
+        Url: `http://localhost:5090/api/v1/Students/Edit?email=${student.email}`,
+        Method: 'PUT',
+        Headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        Data: student,
+      });
 
-          if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(`Failed to update student: ${errorText}`);
-          }
-
-          return student;
-      } catch (error) {
-          return thunkAPI.rejectWithValue(error.message);
-      }
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
+    }
   }
 );
 
 export const deleteStudent = createAsyncThunk(
   'students/deleteStudent',
-  async (student, thunkAPI) => {
+  async (studentEmail, thunkAPI) => {
     try {
-      const response = await fetch(`http://localhost:5090/api/v1/Students/Delete?email=${student.user.email}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
+      const response = await apiRequest({
+        Url: `http://localhost:5090/api/v1/Students/Delete?email=${studentEmail}`,
+        Method: 'DELETE',
+        Headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
         },
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to delete student: ${errorText}`);
-      }
-      return response.json();
+      return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message);
+      return thunkAPI.rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
@@ -126,61 +112,30 @@ const studentSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchStudents.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
-      })
       .addCase(fetchStudents.fulfilled, (state, action) => {
         state.students = action.payload;
         state.status = 'succeeded';
-        state.error = null;
+      })
+      .addCase(fetchStudents.pending, (state) => {
+        state.status = 'loading';
       })
       .addCase(fetchStudents.rejected, (state, action) => {
-        state.status = 'failed';
         state.error = action.payload;
-      })
-      .addCase(addStudent.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
+        state.status = 'failed';
       })
       .addCase(addStudent.fulfilled, (state, action) => {
         state.students.push(action.payload);
-        state.status = 'succeeded';
-        state.error = null;
-      })
-      .addCase(addStudent.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload;
-      })
-      .addCase(updateStudent.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
       })
       .addCase(updateStudent.fulfilled, (state, action) => {
-        state.students = state.students.map((student) =>
-          student.user.email === action.payload.user.email ? action.payload : student
-        );
-        state.status = 'succeeded';
-        state.error = null;
-      })
-      .addCase(updateStudent.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload;
-      })
-      .addCase(deleteStudent.pending, (state) => {
-        state.status = 'loading';
-        state.error = null;
+        const index = state.students.findIndex(student => student.email === action.payload.email);
+        if (index >= 0) {
+          state.students[index] = action.payload;
+        }
       })
       .addCase(deleteStudent.fulfilled, (state, action) => {
-        state.students = state.students.filter((student) => student.user.email !== action.payload.user.email);
-        state.status = 'succeeded';
-        state.error = null;
-      })
-      .addCase(deleteStudent.rejected, (state, action) => {
-        state.status = 'failed';
-        state.error = action.payload;
+        state.students = state.students.filter(student => student.email !== action.payload.email);
       });
-  },
+  }
 });
 
 export const { setEditStudentId, setEditedStudent, clearEdit } = studentSlice.actions;

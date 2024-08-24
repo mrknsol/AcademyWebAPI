@@ -63,7 +63,7 @@ public class TeacherService : ITeacherService {
         return await _context.Teachers.Include(s => s.User).ToListAsync();
     }
 
-    public async Task UpdateTeacherAsync(string email, EditUser teacher)
+    public async Task<Teacher> UpdateTeacherAsync(string email, EditUser teacher)
     {
         var existingTeacher = await _context.Teachers.Include(s => s.User)
                                                     .FirstOrDefaultAsync(e => e.User.Email == email);
@@ -74,6 +74,8 @@ public class TeacherService : ITeacherService {
         existingTeacher.User.Email = teacher.Email;
 
         await _context.SaveChangesAsync();
+
+        return existingTeacher;
     }
 }
 

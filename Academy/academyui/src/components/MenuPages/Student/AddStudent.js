@@ -1,28 +1,27 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStudent } from '../../../redux/studentSlice';
+import SignUpUser from '../../../models/SignUpUser'
 
 const AddStudent = () => {
   const dispatch = useDispatch();
   const { error, status } = useSelector((state) => state.students);
 
-  const [studentData, setStudentData] = useState({
-    name: '',
-    surname: '',
-    age: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
+  const [user, setUser] = useState(new SignUpUser())
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setStudentData((prev) => ({ ...prev, [name]: value }));
+      setUser((prevUser) => ({
+        ...prevUser,
+        [name]: value,
+      }));
   };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(addStudent(studentData));
+    console.log(user);
+    dispatch(addStudent(user));
   };
 
   return (
@@ -33,17 +32,17 @@ const AddStudent = () => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <input
               type="text"
-              name="name"
-              value={studentData.name}
-              onChange={handleChange}
+              name="Name"
+              value={user.Name}
               placeholder="First Name"
               className="border border-gray-300 rounded-md px-2 py-1"
+              onChange={handleChange}
               required
             />
             <input
               type="text"
-              name="surname"
-              value={studentData.surname}
+              name="Surname"
+              value={user.Surname}
               onChange={handleChange}
               placeholder="Last Name"
               className="border border-gray-300 rounded-md px-2 py-1"
@@ -51,8 +50,8 @@ const AddStudent = () => {
             />
             <input
               type="number"
-              name="age"
-              value={studentData.age}
+              name="Age"
+              value={user.Age}
               onChange={handleChange}
               placeholder="Age"
               className="border border-gray-300 rounded-md px-2 py-1"
@@ -60,8 +59,8 @@ const AddStudent = () => {
             />
             <input
               type="email"
-              name="email"
-              value={studentData.email}
+              name="Email"
+              value={user.Email}
               onChange={handleChange}
               placeholder="Email"
               className="border border-gray-300 rounded-md px-2 py-1"
@@ -69,8 +68,8 @@ const AddStudent = () => {
             />
             <input
               type="password"
-              name="password"
-              value={studentData.password}
+              name="Password"
+              value={user.Password}
               onChange={handleChange}
               placeholder="Password"
               className="border border-gray-300 rounded-md px-2 py-1"
@@ -78,8 +77,8 @@ const AddStudent = () => {
             />
             <input
               type="password"
-              name="confirmPassword"
-              value={studentData.confirmPassword}
+              name="ConfirmPassword"
+              value={user.ConfirmPassword}
               onChange={handleChange}
               placeholder="Confirm Password"
               className="border border-gray-300 rounded-md px-2 py-1"

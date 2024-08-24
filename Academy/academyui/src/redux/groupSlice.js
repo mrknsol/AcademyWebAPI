@@ -1,12 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { apiRequest } from '../services/ApiService';
 
 export const fetchGroups = createAsyncThunk(
   'groups/fetchGroups',
   async (_, thunkAPI) => {
     try {
-      const response = await fetch('http://localhost:5090/api/v1/Groups/Get', {
-        method: 'GET',
-        headers: {
+      const response = await apiRequest ({
+        Url: `http://localhost:5090/api/v1/Groups/Get`,
+        Method: 'GET',
+        Headers: {
           'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
         },
       });
@@ -26,20 +28,20 @@ export const createGroup = createAsyncThunk(
   'groups/createGroup',
   async (groupData, thunkAPI) => {
     try {
-      const response = await fetch('http://localhost:5090/api/v1/Groups/Create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await apiRequest ({
+        Url: 'http://localhost:5090/api/v1/Groups/Create',
+        Method: 'POST',
+        Headers: {
           'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
         },
-        body: JSON.stringify(groupData),
+        Data: groupData
       });
 
       if (!response.ok) {
         throw new Error('Failed to create group');
       }
 
-      return response.json();
+      return response;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
     }
@@ -49,13 +51,13 @@ export const createGroup = createAsyncThunk(
 export const updateGroup = createAsyncThunk(
   'groups/updateGroup',
   async (group) => {
-    const response = await fetch(`http://localhost:5090/api/v1/Groups/Edit?groupName=${(group.name)}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await apiRequest ({
+      Url: `http://localhost:5090/api/v1/Groups/Edit?groupName=${(group.name)}`,
+      Method: 'PUT',
+      Headers: {
         'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
       },
-      body: JSON.stringify(group),
+      Data: group
     });
 
     if (!response.ok) {
@@ -63,17 +65,26 @@ export const updateGroup = createAsyncThunk(
       throw new Error(`Failed to update group: ${errorText}`);
     }
 
-    return await response.json();
+    return await response;
   }
 );
 
 export const deleteGroup = createAsyncThunk(
   'groups/deleteGroup',
-  async (group) => {
-    await fetch(`'http://localhost:5090/api/v1/Groups/Delete?groupName=${group.name}`, {
-      method: 'DELETE',
-    });
-    return group.id;
+  async (name, thunkAPI) => {
+    try {
+      const response = await apiRequest ({
+        Url: `http://localhost:5090/api/v1/Groups/Delete?groupName=${name}`,
+        Method: 'DELETE',
+        Headers: {
+          'Authorization': `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        Data: name
+      });
+      return response;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
+    }
   }
 );
 
@@ -82,8 +93,6 @@ const groupSlice = createSlice({
   name: 'groups',
   initialState: {
     groups: [],
-    status: 'idle',
-    error: null,
   },
   reducers: {
     setEditedGroup(state, action) {
